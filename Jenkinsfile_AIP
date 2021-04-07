@@ -60,7 +60,7 @@ spec:
 							echo "Change the line below when we switch to the actual EJB repo"
 							// sh 'gradle SonarQube'
 							echo 'Remove the line below when we switch to the actual EJB repo'
-							sh "mvn -f sample-java-app/pom.xml -Dsonar.projectName=EJB_${env.GIT_BRANCH} -Dsonar.projectKey=EJB_sample sonar:sonar"
+							sh "mvn -Drevision=${projectName}-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml -Dsonar.projectName=EJB_${env.GIT_BRANCH} -Dsonar.projectKey=EJB_sample sonar:sonar"
 						}
 						sleep(60)
 						timeout(time: 1, unit: 'MINUTES') {
