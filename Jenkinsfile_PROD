@@ -29,8 +29,6 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
-							echo "Use the line below when we switch to the actual repo"
-							// sh 'gradle clean build'
                                                         sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties')	
 							if (propfile['javadoc'] == "true") {
@@ -77,17 +75,12 @@ spec:
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
-							echo 'Use the lines below when we switch to the actual EJB repo'
-							/* 
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
 							rm -rf $WORKSPACE/artifacts
 							mkdir -p $WORKSPACE/artifacts
 							cd $WORKSPACE
 							cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
 							cp -r deployment/* artifacts/
-							*/
-                                                        echo 'Remove the 3 lines below when we switch to the actual EJB repo'
-							// sh "mv sample-java-app/target/sample-0.0.1-SNAPSHOT.jar sample-java-app/target/EJB_build-${BUILD_NUMBER}_branch-${env.GIT_BRANCH}.jar"
 							sh 'ls -lrt sample-java-app/target/'
 							sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
 						}
@@ -118,7 +111,7 @@ spec:
 							HOSTS.tokenize(',').each { HOSTNAME ->
 								echo 'Use the lines below when we switch to the actual EJB repo'
 								echo "${HOSTNAME}"
-								/*
+								
 								mkdir -p $WORKSPACE/artifacts
 
 								cp -r /c/Windows/System32/config/systemprofile/AppData/Local/Jenkins/.jenkins/workspace/DevOps_EJB_Build/artifacts/* $WORKSPACE/artifacts/
@@ -134,7 +127,7 @@ spec:
 								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
 
 								ssh cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m EcomEjbProxy.mig -r `date "+%Y%m%d%H%M"`
-								*/
+								
 							}
 						}	
 					}
