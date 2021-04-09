@@ -3,6 +3,19 @@ javadoc=false
 jacoco=false
 code_quality=false
 
+//deployment environment specific variables
+////feature branch and release specific branch deployment
+ondemand_deploy=false
+////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
+target_env=
+HOSTS_ONDEAMND_DEPLOY=
+USERNAME_ONDEAMND_DEPLOY=
+////dev environment deployement 
+////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
+target_env=dev02
+HOSTS_DEV_DEPLOY=rhscmdev02.sterling.com
+USERNAME_DEV_DEPLOY=wasadmin
+
 //deployment specific variables
 deploy_dir=/var/WebSphere/deploy
 ear_file=EJBIntegrationEAR.ear
@@ -10,18 +23,21 @@ log4j_file=EcomEjbProxy_log4j.properties
 migration_file=EcomEjbProxy.mig
 properties_file=EcomEjbProxy.properties
 
-//These will probably need unique names when deployed from different branches(dev/release) or when feature deploy=true
-target_env=dev02
-target_user=wasadmin
-target_host=rhscmdev02.sterling.com
+//post deployment testing specific variables
+ondemand_functionaltest=false
+ondemand_securitytest=false
+ondemand_performancetest=false
+////functionaltest (worksoft) specific variables
+uri=http://pwwsftapp01.irving.zalecorp.com/executionmanager/api
+DEV_host1=10.6.71.16
+uname=devopsengineering@signetjewelers.com
+RequestID=
+deployment_user=
+stage_name=
+////security test specific variables
+////performance test specific variables
 
-//deployment environment specific variables
-////feature branch and release specific branch deployment
-ondemand_deploy=false
-////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
-HOSTS_ONDEAMND_DEPLOY=
-USERNAME_ONDEAMND_DEPLOY=
-////dev environment deployement 
-////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
-HOSTS_DEV_DEPLOY=rhscmdev02.sterling.com
-USERNAME_DEV_DEPLOY=wasadmin
+//email notification specific variables
+////seperate emails with a coma (,) e.g. test@gmail.com,test2@gmail.com
+mail_to=''
+cc_to=''
