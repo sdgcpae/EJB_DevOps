@@ -1,9 +1,9 @@
-feature_deploy=true
+//ci specific variables
 javadoc=false
 jacoco=false
 code_quality=false
 
-//Unique configurations
+//deployment specific variables
 deploy_dir=/var/WebSphere/deploy
 ear_file=EJBIntegrationEAR.ear
 log4j_file=EcomEjbProxy_log4j.properties
@@ -15,11 +15,13 @@ target_env=dev02
 target_user=wasadmin
 target_host=rhscmdev02.sterling.com
 
-DEPLOYMENT_USER=muleadmin
-DEPLOYMENT_ARCHIVE_DIR=/home/muleadmin/stage/archive
-DEPLOYMENT_STAGE_DIR=/home/muleadmin/stage
-DEPLOYMENT_DIR=/opt/mule/latest/webapps
-WAR_FILES=AlertESB.war FraudESB.war TaxESB.war PaymentESB.war FulfillmentESB.war ESBAuditLog.war ESBAutomatedQueueRetry.war OrderReconESB.war
-ESB_BIN_PATH=/opt/mule/bin/esb_service
-ESB_WAR_FOLDERS=PaymentESB ESBAuditLog OrderReconESB FraudESB TaxESB FulfillmentESB AlertESB ESBAutomatedQueueRetry
-SERVER=10.6.74.90
+//deployment environment specific variables
+////feature branch and release specific branch deployment
+ondemand_deploy=false
+////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
+HOSTS_ONDEAMND_DEPLOY=
+USERNAME_ONDEAMND_DEPLOY=
+////dev environment deployement 
+////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
+HOSTS_DEV_DEPLOY=rhscmdev02.sterling.com
+USERNAME_DEV_DEPLOY=wasadmin
