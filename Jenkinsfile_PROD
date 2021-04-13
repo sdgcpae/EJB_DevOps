@@ -103,7 +103,7 @@ spec:
 							echo "Pulling artifact from the repository to deploy"
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB_DevOps-dev-build-6-SNAPSHOT:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
+								-Dartifact=io.buildpacks.example:sample:${propfile['artifact_name']}:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
 							sh "ls -la $WORKSPACE/artifacts"
 							HOSTS.tokenize(',').each { HOSTNAME ->
 								echo "${HOSTNAME}"
