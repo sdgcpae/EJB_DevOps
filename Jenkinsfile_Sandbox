@@ -1,5 +1,7 @@
 def propfile
 def FAILED_STAGE
+def allJob = env.JOB_NAME.tokenize('/') as String[];
+def projectName = allJob[2];
 pipeline {
 	agent {
         kubernetes {
@@ -57,8 +59,7 @@ spec:
 								FAILED_STAGE=env.STAGE_NAME
 								echo 'I am executing code quality using sonarqube'
 								echo ' Update the line below when we switch to actual EJB repo'	
-								// sh './gradle Sonarqube'
-							}
+								sh "mvn -Drevision=${projectName}-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml -Dsonar.projectName=EJB_${env.GIT_BRANCH} -Dsonar.projectKey=EJB_sample sonar:sonar"							}
 							sleep(60)
 							timeout(time: 1, unit: 'MINUTES') {
 								waitForQualityGate abortPipeline: true
