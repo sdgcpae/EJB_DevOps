@@ -59,7 +59,7 @@ spec:
 								echo ' Update the line below when we switch to actual EJB repo'	
 								// sh './gradle Sonarqube'
 							}
-							//sleep(60)
+							sleep(60)
 							timeout(time: 1, unit: 'MINUTES') {
 								waitForQualityGate abortPipeline: true
 							} 
