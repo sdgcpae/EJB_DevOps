@@ -8,8 +8,8 @@ publish_pkg=false
 ////dev environment deployement 
 ////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
 target_env=dev02
-HOSTS_DEV_DEPLOY=rhscmdev02.sterling.com
-USERNAME_DEV_DEPLOY=wasadmin
+HOSTS_DEPLOY=rhscmdev02.sterling.com
+USERNAME_DEPLOY=wasadmin
 
 //deployment specific variables
 artifact_name=EJB_DevOps-dev-build-6-SNAPSHOT
