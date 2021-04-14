@@ -96,8 +96,8 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							if (env.GIT_BRANCH == 'dev' ) {
-								USERNAME=propfile['USERNAME_DEV_DEPLOY']
-								HOSTS=propfile['HOSTS_DEV_DEPLOY']
+								USERNAME=propfile['USERNAME_DEPLOY']
+								HOSTS=propfile['HOSTS_DEPLOY']
 							}
 							mkdir -p $WORKSPACE/artifacts
 							echo "Pulling artifact from the repository to deploy"
