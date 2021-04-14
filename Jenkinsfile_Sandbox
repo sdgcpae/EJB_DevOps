@@ -1,17 +1,11 @@
+def propfile
+def FAILED_STAGE
 pipeline {
-    environment {
-		PROJECT_ID = "sd-devops"
-		APP_NAME = "sample-java-app"
-		CLUSTER_NAME = "cluster-1"
-		CLUSTER_ZONE = "us-central1-a"
-		CREDENTIALS_ID = "sd-devops"
-  	} 
-	//agent any 2
-  agent {
-    kubernetes {
-      label 'SpringBootRestApp'
-      defaultContainer 'jnlp'
-      yaml """
+	agent {
+        kubernetes {
+			    label 'SpringBootRestApp'
+			    defaultContainer 'jnlp'
+			    yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -25,81 +19,181 @@ spec:
     - cat
     tty: true
 """
-}
-	}
-  
-    stages {
-    stage('check_gradle_version') {
-            steps {
-		    container('gradle') {
-                sh 'gradle -v'
-                sh 'echo workspace is $WORKSPACE'
-		    sh "ls -la ${pwd()}"
-	          sh 'chmod 777 * '
-		sh './gradlew compileJava'
-            }
-	  }
+        }
     }
- 
-	    
-	  stage('Unit Test') {
+	stages {
+		stage('Build & Unit Test') {
 			steps {
 				container('gradle') {
-					withMaven(maven: 'MAVEN-3.6.3') {
-          	withSonarQubeEnv(installationName:'Sonarqube') {
-							echo 'I am executing unit test'
-			sh "ls -la ${pwd()}"
-							sh 'mvn -f sample-java-app/pom.xml clean package'
-			                                 
-			
-					               
-				   	}
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							echo 'I am executing build and unit test'
+                                                        //sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
+							propfile = readProperties(file: './project.properties')	
+							if (propfile['javadoc'] == "true") {
+								sh 'mvn javadoc:aggregate'
+							}
+							if (propfile['jacoco'] == "true") {
+								jacoco( 
+									execPattern: '**/*.exec',
+									classPattern: '**/*.class',
+									sourcePattern: '**/*.java',
+									exclusionPattern: '**/test*'
+								)
+							}
+						}	
 					}
 				}
 			}
-		} 
-
-		 stage('Code Quality') {
+		}
+		stage('Code Quality') {
+			when { expression {propfile['code_quality'] == "true" }}
 			steps {
 				container('gradle') {
-					withMaven(maven: 'MAVEN-3.6.3') {
-						withSonarQubeEnv(installationName:'Sonarqube') {
-							echo 'I am executing code quality using sonarqube'	
-							sh 'mvn -f sample-java-app/pom.xml sonar:sonar'
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							withSonarQubeEnv(installationName: 'Sonarqube') {
+								FAILED_STAGE=env.STAGE_NAME
+								echo 'I am executing code quality using sonarqube'
+								echo ' Update the line below when we switch to actual EJB repo'	
+								// sh './gradle Sonarqube'
+							}
+							//sleep(60)
+							timeout(time: 1, unit: 'MINUTES') {
+								waitForQualityGate abortPipeline: true
+							} 
 						}
-						sleep(60)
-						timeout(time: 1, unit: 'MINUTES') {
-							waitForQualityGate abortPipeline: true
-						}			
 					}
 				}
-			}   
-		} 
-
-		/*stage('Publish Package') {
-            steps {
-		    		container('gradle') {
-				withMaven(maven: 'MAVEN-3.6.3') {
-					echo 'I am executing build and push the artifact with unique name showing the branch from which it is generated, to Archiva'	
-					sh 'mvn -X deploy:deploy-file -Dfile=sample-java-app/target/sample-0.0.1-SNAPSHOT.jar -DpomFile=sample-java-app/pom.xml -DrepositoryId=snapshots -Durl=http://35.188.92.10/repository/snapshots/'
-				}		
-            }
-	    }
-        }
-		
-		/* stage('Deploy Dev') {
-			when { branch 'dev'}
-            steps {
-				echo "I am executing Deploy the artifact from Archiva to target dev environment. My artifact has a unique name which is automatically generated and deployed to target dev environment"
-				echo "Work in progress"
-            }
-        }
-		stage('Smoke Test'){
-			when { branch 'dev'}
-			steps {
-				echo "I am executing Smoke Test on target dev environment post deployment"
-				echo 'Work in progress'
 			}
-		} */
+		}
+		stage("Publish Package") {
+			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
+							/*
+							rm -rf $WORKSPACE/artifacts
+							mkdir -p $WORKSPACE/artifacts
+							cd $WORKSPACE
+							cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
+							cp -r deployment/* artifacts/
+							sh 'ls -lrt sample-java-app/target/'
+							sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
+							*/
+						}
+					}
+				}
+			}
+		}
+		stage("Deploy") {
+			when { expression {env.GIT_BRANCH == 'dev'}}
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							if (env.GIT_BRANCH == 'dev' ) {
+								USERNAME=propfile['USERNAME_DEPLOY']
+								HOSTS=propfile['HOSTS_DEPLOY']
+							}
+							/*
+							mkdir -p $WORKSPACE/artifacts
+							echo "Pulling artifact from the repository to deploy"
+							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
+								-Dartifact=io.buildpacks.example:sample:${propfile['artifact_name']}:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
+							sh "ls -la $WORKSPACE/artifacts"
+							HOSTS.tokenize(',').each { HOSTNAME ->
+								echo "${HOSTNAME}"
+								cp -r /c/Windows/System32/config/systemprofile/AppData/Local/Jenkins/.jenkins/workspace/DevOps_EJB_Build/artifacts/* $WORKSPACE/artifacts/
+
+								scp -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
+
+								ssh cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m EcomEjbProxy.mig -r `date "+%Y%m%d%H%M"`	
+							}
+							*/
+						}	
+					}
+				}
+			}
+		}
+		stage('Post Deploy Tests') {
+			when { expression {env.GIT_BRANCH == 'dev'}}
+			parallel {
+				stage('Functional Test') {
+					when {expression {propfile['ondemand_functionaltest'] == "true" }}
+					steps {
+						script {
+							FAILED_STAGE=env.STAGE_NAME
+							echo "I am running Functional Test here"
+						}
+					}
+				}
+				stage('Security Test') {
+					when {expression {propfile['ondemand_securitytest'] == "true" }}
+					steps {
+						container('gradle') {
+							script {
+								withMaven(maven: 'MAVEN-3.6.3') {
+									FAILED_STAGE=env.STAGE_NAME
+									echo 'I am running Security Test here'
+								}
+							}
+						}
+					}
+				}
+				stage('Performance Test') {
+					when {expression {propfile['ondemand_perfomancetest'] == "true" }}
+					steps {
+						container('gradle') {
+							script {
+								withMaven(maven: 'MAVEN-3.6.3') {
+									FAILED_STAGE=env.STAGE_NAME
+									echo 'I am running Performance Test here'
+								}
+							}
+						}
+					}
+				}
+			}  
+		}
+	}
+	post {
+		always {
+			script {
+				if (propfile['javadoc'] == "true") {
+					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
+				}
+			}
+		}
+		failure {
+			script {
+				mail to: propfile['mail_to'],
+				cc: propfile['cc_to'],
+				subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+				body: "Something is wrong with the ${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline in the ${FAILED_STAGE} stage.\nBuild URL: ${env.BUILD_URL}"
+			}
+		}
+		success {
+			script {
+				mail to: propfile['mail_to'],
+				cc: propfile['cc_to'],
+				subject: "SuccessfulPipeline: ${currentBuild.fullDisplayName}",
+				body: "${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline has been completed successfuly.\nBuild URL: ${env.BUILD_URL}"
+			}
+		}
 	}
 }
