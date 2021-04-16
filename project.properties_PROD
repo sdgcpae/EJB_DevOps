@@ -1,8 +1,14 @@
+publish_pkg=false
+
 //ci specific variables
 javadoc=false
 jacoco=false
 code_quality=false
-publish_pkg=false
+
+//post deployment testing specific variables
+ondemand_functionaltest=false
+ondemand_securitytest=false
+ondemand_performancetest=false
 
 //deployment environment specific variables
 ////dev environment deployement 
@@ -12,17 +18,12 @@ HOSTS_DEPLOY=rhscmdev02.sterling.com
 USERNAME_DEPLOY=wasadmin
 
 //deployment specific variables
-artifact_name=EJB_DevOps-dev-build-6-SNAPSHOT
 deploy_dir=/var/WebSphere/deploy
 ear_file=EJBIntegrationEAR.ear
 log4j_file=EcomEjbProxy_log4j.properties
 migration_file=EcomEjbProxy.mig
 properties_file=EcomEjbProxy.properties
 
-//post deployment testing specific variables
-ondemand_functionaltest=false
-ondemand_securitytest=false
-ondemand_performancetest=false
 ////functionaltest (worksoft) specific variables
 uri=http://pwwsftapp01.irving.zalecorp.com/executionmanager/api
 DEV_host1=10.6.71.16
