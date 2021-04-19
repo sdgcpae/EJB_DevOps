@@ -110,7 +110,7 @@ spec:
 								HOSTS=HOSTS_DEPLOY
 
 								echo "${HOSTS}"
-								ssh -i ${keyfile} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt
+								sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt'
 								/*
 								mkdir -p $WORKSPACE/artifacts
 								echo "Pulling artifact from the repository to deploy"
