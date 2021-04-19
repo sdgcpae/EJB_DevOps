@@ -148,7 +148,7 @@ spec:
 								echo "I am running Functional Test here"
 								sh '''
 									ssh -i ${token} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 $test
-									ssh wasadmin@10.250.52.52 pwd
+									ssh -i ${token} wasadmin@10.250.52.52 pwd
 								'''
 							}
 						//}
