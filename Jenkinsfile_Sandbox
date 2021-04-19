@@ -21,6 +21,9 @@ spec:
 """
         }
     }
+    	environment {
+		javadoc=false
+	}
 	stages {
 		stage('Build & Unit Test') {
 			steps {
@@ -29,6 +32,9 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
+							
+							echo ${javadoc}
+							
                                                         //sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties_PROD')	
 							if (propfile['javadoc'] == "true") {
@@ -187,6 +193,7 @@ spec:
 				body: "Something is wrong with the ${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline in the ${FAILED_STAGE} stage.\nBuild URL: ${env.BUILD_URL}"
 			}
 		}
+		/*
 		success {
 			script {
 				mail to: propfile['mail_to'],
@@ -195,5 +202,6 @@ spec:
 				body: "${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline has been completed successfuly.\nBuild URL: ${env.BUILD_URL}"
 			}
 		}
+		*/
 	}
 }
