@@ -70,6 +70,12 @@ spec:
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
+							
+							
+							echo "${javadoc}"
+							
+							exit 1
+							
 							echo 'I am executing build and unit test'
                                                         sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties')	
