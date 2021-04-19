@@ -98,7 +98,6 @@ spec:
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev'}}
 			steps {
 				container('gradle') {
 					script {
