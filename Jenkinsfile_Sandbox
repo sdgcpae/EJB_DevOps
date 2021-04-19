@@ -22,7 +22,7 @@ spec:
         }
     }
     	environment {
-		javadoc=false
+		javadoc = 'false'
 	}
 	stages {
 		stage('Build & Unit Test') {
