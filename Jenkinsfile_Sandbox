@@ -104,10 +104,8 @@ spec:
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
-							if (env.GIT_BRANCH == 'dev' ) {
-								USERNAME=HOSTS_DEPLOY
-								HOSTS=HOSTS_DEPLOY
-							}
+							USERNAME=HOSTS_DEPLOY
+							HOSTS=HOSTS_DEPLOY
 							
 							echo "${HOSTS}"
 							/*
