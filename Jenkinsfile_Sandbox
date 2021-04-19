@@ -141,9 +141,9 @@ spec:
 		stage('Post Deploy Tests') {
 			when { expression {env.GIT_BRANCH == 'master'}}
 			parallel {
-				withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
-					stage('Functional Test') {
-						steps {
+				stage('Functional Test') {
+					steps {
+						withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
 							script {
 								FAILED_STAGE=env.STAGE_NAME
 								echo "I am running Functional Test here"
