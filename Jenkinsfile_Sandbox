@@ -191,23 +191,5 @@ spec:
 				}
 			}
 		}
-		failure {
-			script {
-				mail to: propfile['mail_to'],
-				cc: propfile['cc_to'],
-				subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-				body: "Something is wrong with the ${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline in the ${FAILED_STAGE} stage.\nBuild URL: ${env.BUILD_URL}"
-			}
-		}
-		/*
-		success {
-			script {
-				mail to: propfile['mail_to'],
-				cc: propfile['cc_to'],
-				subject: "SuccessfulPipeline: ${currentBuild.fullDisplayName}",
-				body: "${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline has been completed successfuly.\nBuild URL: ${env.BUILD_URL}"
-			}
-		}
-		*/
 	}
 }
