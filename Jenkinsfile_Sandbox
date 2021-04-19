@@ -139,7 +139,6 @@ spec:
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'master'}}
 			parallel {
 				stage('Functional Test') {
 					steps {
