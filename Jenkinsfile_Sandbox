@@ -142,13 +142,13 @@ spec:
 			parallel {
 				stage('Functional Test') {
 					steps {
-						withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
+						//withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
 							script {
 								FAILED_STAGE=env.STAGE_NAME
 								echo "I am running Functional Test here"
-								sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 $test'
+								sh 'ssh -i ${token} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 $test'
 							}
-						}
+						//}
 					}
 				}
 				stage('Security Test') {
