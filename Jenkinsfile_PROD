@@ -71,10 +71,10 @@ spec:
 							echo 'I am executing build and unit test'
                                                         sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties')	
-							if (propfile['javadoc'] == "true") {
+							if (javadoc == "true") {
 								sh 'mvn javadoc:aggregate'
 							}
-							if (propfile['jacoco'] == "true") {
+							if (jacoco == "true") {
 								jacoco( 
 									execPattern: '**/*.exec',
 									classPattern: '**/*.class',
