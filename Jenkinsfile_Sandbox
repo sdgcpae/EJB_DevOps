@@ -24,6 +24,8 @@ spec:
     	environment {
 		javadoc = 'false'
 		HOSTS_DEPLOY = 'rhscmdev02.sterling.com'
+		test = 'ls -lrt'
+		token = credentials('id_rsa_jenkins')
 	}
 	stages {
 		stage('Build & Unit Test') {
@@ -107,6 +109,7 @@ spec:
 							HOSTS=HOSTS_DEPLOY
 							
 							echo "${HOSTS}"
+							ssh -i $token -o StrictHostKeyChecking=no wasadmin@10.250.52.52 "${test}"
 							/*
 							mkdir -p $WORKSPACE/artifacts
 							echo "Pulling artifact from the repository to deploy"
