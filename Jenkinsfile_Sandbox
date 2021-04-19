@@ -146,7 +146,7 @@ spec:
 							script {
 								FAILED_STAGE=env.STAGE_NAME
 								echo "I am running Functional Test here"
-								sh 'ssh -i keyfile -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt'
+								sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt'
 							}
 						}
 					}
