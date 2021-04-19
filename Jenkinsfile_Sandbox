@@ -23,6 +23,7 @@ spec:
     }
     	environment {
 		javadoc = 'false'
+		HOSTS_DEPLOY = 'rhscmdev02.sterling.com'
 	}
 	stages {
 		stage('Build & Unit Test') {
@@ -54,7 +55,7 @@ spec:
 			}
 		}
 		stage('Code Quality') {
-			when { expression {javadoc == "false" }}
+			when { expression {javadoc == "true" }}
 			steps {
 				container('gradle') {
 					script {
@@ -104,9 +105,11 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							if (env.GIT_BRANCH == 'dev' ) {
-								USERNAME=propfile['USERNAME_DEPLOY']
-								HOSTS=propfile['HOSTS_DEPLOY']
+								USERNAME=HOSTS_DEPLOY
+								HOSTS=HOSTS_DEPLOY
 							}
+							
+							echo "${HOSTS}"
 							/*
 							mkdir -p $WORKSPACE/artifacts
 							echo "Pulling artifact from the repository to deploy"
