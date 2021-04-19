@@ -99,57 +99,56 @@ spec:
 				}
 			}
 		}
-		withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
-			stage("Deploy") {
-				steps {
-					container('gradle') {
-						script {
-							withMaven(maven: 'MAVEN-3.6.3') {
-								FAILED_STAGE=env.STAGE_NAME
-								USERNAME=HOSTS_DEPLOY
-								HOSTS=HOSTS_DEPLOY
+		stage("Deploy") {
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							USERNAME=HOSTS_DEPLOY
+							HOSTS=HOSTS_DEPLOY
 
-								echo "${HOSTS}"
-								sh 'ssh -i ${keyfile} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt'
-								/*
-								mkdir -p $WORKSPACE/artifacts
-								echo "Pulling artifact from the repository to deploy"
-								sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
-									-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-									-Dartifact=io.buildpacks.example:sample:${propfile['artifact_name']}:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
-								sh "ls -la $WORKSPACE/artifacts"
-								HOSTS.tokenize(',').each { HOSTNAME ->
-									echo "${HOSTNAME}"
-									cp -r /c/Windows/System32/config/systemprofile/AppData/Local/Jenkins/.jenkins/workspace/DevOps_EJB_Build/artifacts/* $WORKSPACE/artifacts/
+							echo "${HOSTS}"
+							/*
+							mkdir -p $WORKSPACE/artifacts
+							echo "Pulling artifact from the repository to deploy"
+							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
+								-Dartifact=io.buildpacks.example:sample:${propfile['artifact_name']}:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
+							sh "ls -la $WORKSPACE/artifacts"
+							HOSTS.tokenize(',').each { HOSTNAME ->
+								echo "${HOSTNAME}"
+								cp -r /c/Windows/System32/config/systemprofile/AppData/Local/Jenkins/.jenkins/workspace/DevOps_EJB_Build/artifacts/* $WORKSPACE/artifacts/
 
-									scp -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+								scp -rp $WORKSPACE/artifacts/propfile['target_env']/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
 
-									ssh /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
-									ssh /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
-									ssh /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
-									ssh /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
+								ssh /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
 
-									ssh cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m EcomEjbProxy.mig -r `date "+%Y%m%d%H%M"`	
-								}
-								*/
-							}	
-						}
+								ssh cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m EcomEjbProxy.mig -r `date "+%Y%m%d%H%M"`	
+							}
+							*/
+						}	
 					}
 				}
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'dev'}}
+			when { expression {env.GIT_BRANCH == 'master'}}
 			parallel {
-				stage('Functional Test') {
-					when {expression {propfile['ondemand_functionaltest'] == "true" }}
-					steps {
-						script {
-							FAILED_STAGE=env.STAGE_NAME
-							echo "I am running Functional Test here"
+				withCredentials([sshUserPrivateKey(credentialsId: "id_rsa_jenkins", keyFileVariable: 'keyfile')]) {
+					stage('Functional Test') {
+						steps {
+							script {
+								FAILED_STAGE=env.STAGE_NAME
+								echo "I am running Functional Test here"
+								sh 'ssh -i keyfile -o StrictHostKeyChecking=no wasadmin@10.250.52.52 ls -lrt'
+							}
 						}
 					}
 				}
