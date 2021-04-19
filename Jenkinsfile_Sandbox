@@ -33,7 +33,7 @@ spec:
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
 							
-							echo ${javadoc}
+							echo "${javadoc}"
 							
                                                         //sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties_PROD')	
