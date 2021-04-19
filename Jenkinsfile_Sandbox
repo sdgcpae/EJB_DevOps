@@ -54,7 +54,7 @@ spec:
 			}
 		}
 		stage('Code Quality') {
-			when { expression {$javadoc == "false" }}
+			when { expression {${javadoc} == "false" }}
 			steps {
 				container('gradle') {
 					script {
