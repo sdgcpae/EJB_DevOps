@@ -78,22 +78,22 @@ spec:
 			}
 		}
 		stage("Publish Package") {
-			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
+			//when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
-							/*
-							rm -rf $WORKSPACE/artifacts
-							mkdir -p $WORKSPACE/artifacts
-							cd $WORKSPACE
-							cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
-							cp -r deployment/* artifacts/
-							sh 'ls -lrt sample-java-app/target/'
+							sh '''
+								rm -rf $WORKSPACE/artifacts
+								mkdir -p $WORKSPACE/artifacts
+								cd $WORKSPACE
+								cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
+								cp -r deployment/* artifacts/
+								ls -lrt sample-java-app/target/
+							'''
 							sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
-							*/
 						}
 					}
 				}
