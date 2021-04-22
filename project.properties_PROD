@@ -1,5 +1,5 @@
-publish_pkg=false
-auto_deploy=false
+publish_pkg=true
+auto_deploy=true
 auto_post_deploy_tests=false
 
 //ci specific variables
