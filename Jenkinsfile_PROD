@@ -105,7 +105,7 @@ spec:
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /release\// ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_deploy'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
@@ -152,7 +152,7 @@ spec:
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /release\// ||  propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /project\// }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
 			parallel {
 				stage('Functional Test') {
 					when {expression {propfile['ondemand_functionaltest'] == "true" }}
