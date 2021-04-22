@@ -118,6 +118,10 @@ spec:
 								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
 								TARGETENV=propfile['target_auto_env']
 							}
+							echo "${USERNAME}"
+							echo "${HOSTNAME}"
+							echo "${TARGETENV}"
+							/*
 							echo "Pulling artifact from the repository to deploy"
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
@@ -139,6 +143,7 @@ spec:
 									ssh -i ${token} cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m propfile['migration_file'] -r `date "+%Y%m%d%H%M"`	
 								'''
 							}
+							*/
 						}	
 					}
 				}
