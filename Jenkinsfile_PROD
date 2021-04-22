@@ -36,7 +36,7 @@ spec:
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
 							sh 'gradle clean build'
-							propfile = readProperties(file: './project.properties')	
+							propfile = readProperties(file: './project.properties_PROD')	
 							if (propfile['javadoc'] == "true") {
 								sh 'mvn javadoc:aggregate'
 							}
