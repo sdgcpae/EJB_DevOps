@@ -104,49 +104,15 @@ spec:
 				}
 			}
 		}
-		stage('Deploy') {
-			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
+		stage("Deploy") {
+			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
-							if (env.GIT_BRANCH == 'dev') {
-								USERNAME=propfile['USERNAME_DEPLOY']
-								HOSTS=propfile['HOSTS_DEPLOY']
-								TARGETENV=propfile['target_env']
-							} else if(propfile['auto_deploy'] == "true") {
-								USERNAME=propfile['USERNAME_AUTO_DEPLOY']
-								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
-								TARGETENV=propfile['target_auto_env']
-							}
-							echo "${USERNAME}"
-							echo "${HOSTNAME}"
-							echo "${TARGETENV}"
-							/*
-							echo "Pulling artifact from the repository to deploy"
-							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
-								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/${ear_file}"
-							sh "ls -la $WORKSPACE/artifacts"
-							HOSTS.tokenize(',').each { HOSTNAME ->
-								echo "${HOSTNAME}"
-								sh '''
-									scp -i ${token} -o StrictHostKeyChecking=no -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -i ${token}	-rp $WORKSPACE/artifacts/${TARGETENV}/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
-
-									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
-									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
-									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
-									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
-
-									ssh -i ${token} cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m propfile['migration_file'] -r `date "+%Y%m%d%H%M"`	
-								'''
-							}
-							*/
-						}	
+							echo 'test'
+						}
 					}
 				}
 			}
