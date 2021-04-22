@@ -89,7 +89,7 @@ spec:
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev' || env.GIT_BRANCH ==~ 'origin/'  }}
+			when { expression {env.GIT_BRANCH == 'dev' || env.GIT_BRANCH == 'origin/release'  }}
 			steps {
 				container('gradle') {
 					script {
