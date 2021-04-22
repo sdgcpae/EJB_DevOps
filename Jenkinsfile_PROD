@@ -23,44 +23,10 @@ spec:
 """
         }
     }
-	environment {
-		//ci specific variables
-		javadoc = 'false'
-		jacoco = 'false'
-		code_quality = 'false'
-
-		//post deployment testing specific variables
-		ondemand_functionaltest = 'false'
-		ondemand_securitytest = 'false'
-		ondemand_performancetest = 'false'
-
-		//deployment environment specific variables
-		////dev environment deployement 
-		////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
-		target_env = 'dev02'
-		HOSTS_DEPLOY = 'rhscmdev02.sterling.com'
-		USERNAME_DEPLOY = 'wasadmin'
-
-		//deployment specific variables
-		deploy_dir = '/var/WebSphere/deploy'
-		ear_file = 'EJBIntegrationEAR.ear'
-		log4j_file = 'EcomEjbProxy_log4j.properties'
-		migration_file = 'EcomEjbProxy.mig'
-		properties_file = 'EcomEjbProxy.properties'
-
-		////functionaltest (worksoft) specific variables
-		uri = 'http://pwwsftapp01.irving.zalecorp.com/executionmanager/api'
-		DEV_host1 = '10.6.71.16'
-		uname = 'devopsengineering@signetjewelers.com'
-		RequestID = ''
-		deployment_user = ''
-		stage_name = ''
-		////security test specific variables
-		////performance test specific variables
-		
-		//SSH TOKENS
+    environment {
+    	//SSH TOKENS
 		token = credentials('id_rsa_jenkins')
-	}
+    }
 	stages {
 		stage('Build & Unit Test') {
 			steps {
@@ -69,12 +35,12 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
-                                                        sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
+							sh 'gradle clean build'
 							propfile = readProperties(file: './project.properties')	
-							if (javadoc == "true") {
+							if (propfile['javadoc'] == "true") {
 								sh 'mvn javadoc:aggregate'
 							}
-							if (jacoco == "true") {
+							if (propfile['jacoco'] == "true") {
 								jacoco( 
 									execPattern: '**/*.exec',
 									classPattern: '**/*.class',
@@ -88,7 +54,7 @@ spec:
 			}
 		}
 		stage('Code Quality') {
-			when { expression {code_quality == "true" }}
+			when { expression {propfile['code_quality'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
@@ -116,50 +82,61 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
-							rm -rf $WORKSPACE/artifacts
-							mkdir -p $WORKSPACE/artifacts
-							cd $WORKSPACE
-							cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
-							cp -r deployment/* artifacts/
-							sh 'ls -lrt sample-java-app/target/'
-							sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
+							sh '''
+								rm -rf $WORKSPACE/artifacts
+								mkdir -p $WORKSPACE/artifacts
+								cd $WORKSPACE
+								cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
+								cp -r deployment/* artifacts/
+								ls -lrt $WORKSPACE/artifacts
+							'''
+							sh "mvn -X deploy:deploy-file \
+								-Dfile=$WORKSPACE/artifacts/EJBIntegrationEAR.ear \
+								-DrepositoryId=snapshots \
+								-Durl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots/ \
+								-DgroupId=io.buildpacks.example \
+								-DartifactId=sample \
+								-Dversion=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}"
 						}
 					}
 				}
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev'}}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
 			steps {
 				container('gradle') {
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
-							if (env.GIT_BRANCH == 'dev' ) {
-								USERNAME=USERNAME_DEPLOY
-								HOSTS=HOSTS_DEPLOY
+							if (env.GIT_BRANCH == 'dev') {
+								USERNAME=propfile['USERNAME_DEPLOY']
+								HOSTS=propfile['HOSTS_DEPLOY']
+								TARGETENV=propfile['target_env']
+							} else if(propfile['auto_deploy'] == "true") {
+								USERNAME=propfile['USERNAME_AUTO_DEPLOY']
+								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
+								TARGETENV=propfile['target_auto_env']
 							}
-							mkdir -p $WORKSPACE/artifacts
 							echo "Pulling artifact from the repository to deploy"
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT:jar -Ddest=$WORKSPACE/artifacts/myfile.jar"
+								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/${ear_file}"
 							sh "ls -la $WORKSPACE/artifacts"
 							HOSTS.tokenize(',').each { HOSTNAME ->
 								echo "${HOSTNAME}"
-								cp -r /c/Windows/System32/config/systemprofile/AppData/Local/Jenkins/.jenkins/workspace/DevOps_EJB_Build/artifacts/* $WORKSPACE/artifacts/
 								sh '''
-									scp -i ${token} -o StrictHostKeyChecking=no -rp $WORKSPACE/artifacts/$ear_file ${USERNAME}@${HOSTNAME}:$deploy_dir/
-									scp -i ${token} -rp $WORKSPACE/artifacts/$target_env/$migration_file ${USERNAME}@${HOSTNAME}:$deploy_dir/
-									scp -i ${token} -rp $WORKSPACE/artifacts/$target_env/$properties_file ${USERNAME}@${HOSTNAME}:$deploy_dir/
-									scp -i ${token} -rp $WORKSPACE/artifacts/$target_env/$log4j_file ${USERNAME}@${HOSTNAME}:$deploy_dir/
+									scp -i ${token} -o StrictHostKeyChecking=no -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token}	-rp $WORKSPACE/artifacts/${TARGETENV}/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
 
-									ssh -i ${token} /bin/chmod 666 $deploy_dir/$ear_file
-									ssh -i ${token} /bin/chmod 666 $deploy_dir/$migration_file
-									ssh -i ${token} /bin/chmod 666 $deploy_dir/$properties_file
-									ssh -i ${token} /bin/chmod 666 $deploy_dir/$log4j_file
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
 
-									ssh -i ${token} cd $deploy_dir;/usr/local/was/bin/wasMigrate.s -m EcomEjbProxy.mig -r `date "+%Y%m%d%H%M"`
+									ssh -i ${token} cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m propfile['migration_file'] -r `date "+%Y%m%d%H%M"`	
 								'''
 							}
 						}	
@@ -168,10 +145,10 @@ spec:
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'dev'}}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
 			parallel {
 				stage('Functional Test') {
-					when {expression {ondemand_functionaltest == "true" }}
+					when {expression {propfile['ondemand_functionaltest'] == "true" }}
 					steps {
 						script {
 							FAILED_STAGE=env.STAGE_NAME
@@ -180,7 +157,7 @@ spec:
 					}
 				}
 				stage('Security Test') {
-					when {expression {ondemand_securitytest == "true" }}
+					when {expression {propfile['ondemand_securitytest'] == "true" }}
 					steps {
 						container('gradle') {
 							script {
@@ -193,7 +170,7 @@ spec:
 					}
 				}
 				stage('Performance Test') {
-					when {expression {ondemand_perfomancetest == "true" }}
+					when {expression {propfile['ondemand_perfomancetest'] == "true" }}
 					steps {
 						container('gradle') {
 							script {
@@ -211,7 +188,7 @@ spec:
 	post {
 		always {
 			script {
-				if (javadoc == "true") {
+				if (propfile['javadoc'] == "true") {
 					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
 				}
 			}
