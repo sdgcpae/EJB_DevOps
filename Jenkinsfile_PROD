@@ -151,6 +151,7 @@ spec:
 				}
 			}
 		}
+		/*
 		stage('Post Deploy Tests') {
 			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
 			parallel {
@@ -192,6 +193,7 @@ spec:
 			}  
 		}
 	}
+	*/
 	post {
 		always {
 			script {
