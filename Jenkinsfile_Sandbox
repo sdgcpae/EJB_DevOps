@@ -1,0 +1,166 @@
+def propfile
+def FAILED_STAGE
+def allJob = env.JOB_NAME.tokenize('/') as String[];
+def projectName = allJob[2];
+pipeline {
+	agent {
+        kubernetes {
+			    label 'SpringBootRestApp'
+			    defaultContainer 'jnlp'
+			    yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+labels:
+  component: ci
+spec:
+  containers:
+  - name: gradle
+    image: gradle:3.5-jdk8-alpine
+    command:
+    - cat
+    tty: true
+"""
+        }
+    }
+    environment {
+    	//SSH TOKENS
+		token = credentials('id_rsa_jenkins')
+    }
+	stages {
+		stage('Build & Unit Test') {
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							echo 'I am executing build and unit test'
+							//sh 'gradle clean build'
+							propfile = readProperties(file: './project.properties_PROD')	
+							if (propfile['javadoc'] == "true") {
+								sh 'mvn javadoc:aggregate'
+							}
+							if (propfile['jacoco'] == "true") {
+								jacoco( 
+									execPattern: '**/*.exec',
+									classPattern: '**/*.class',
+									sourcePattern: '**/*.java',
+									exclusionPattern: '**/test*'
+								)
+							}
+						}	
+					}
+				}
+			}
+		}
+		stage('Code Quality') {
+			when { expression {propfile['code_quality'] == "true" }}
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							withSonarQubeEnv(installationName: 'Sonarqube') {
+								FAILED_STAGE=env.STAGE_NAME
+								echo 'I am executing code quality using sonarqube'
+								echo ' Update the line below when we switch to actual EJB repo'	
+								// sh './gradle Sonarqube'
+							}
+							sleep(60)
+							timeout(time: 1, unit: 'MINUTES') {
+								waitForQualityGate abortPipeline: true
+							} 
+						}
+					}
+				}
+			}
+		}
+		stage("Publish Package") {
+			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
+							echo env.GIT_BRANCH
+						}
+					}
+				}
+			}
+		}
+		stage("Deploy") {
+			when { expression {env.GIT_BRANCH == 'dev' || env.GIT_BRANCH ==~ /release/  }}
+			steps {
+				container('gradle') {
+					script {
+						withMaven(maven: 'MAVEN-3.6.3') {
+							FAILED_STAGE=env.STAGE_NAME
+							FAILED_STAGE=env.STAGE_NAME
+							if (env.GIT_BRANCH == 'dev') {
+								USERNAME=propfile['USERNAME_DEPLOY']
+								HOSTS=propfile['HOSTS_DEPLOY']
+								TARGETENV=propfile['target_env']
+							} else if(propfile['auto_deploy'] == "true") {
+								USERNAME=propfile['USERNAME_AUTO_DEPLOY']
+								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
+								TARGETENV=propfile['target_auto_env']
+							}
+							echo "${USERNAME}"
+							echo "${HOSTS}"
+							echo "${TARGETENV}"
+						}
+					}
+				}
+			}
+		}
+		stage('Post Deploy Tests') {
+			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
+			parallel {
+				stage('Functional Test') {
+					when {expression {propfile['ondemand_functionaltest'] == "true" }}
+					steps {
+						script {
+							FAILED_STAGE=env.STAGE_NAME
+							echo "I am running Functional Test here"
+						}
+					}
+				}
+				stage('Security Test') {
+					when {expression {propfile['ondemand_securitytest'] == "true" }}
+					steps {
+						container('gradle') {
+							script {
+								withMaven(maven: 'MAVEN-3.6.3') {
+									FAILED_STAGE=env.STAGE_NAME
+									echo 'I am running Security Test here'
+								}
+							}
+						}
+					}
+				}
+				stage('Performance Test') {
+					when {expression {propfile['ondemand_perfomancetest'] == "true" }}
+					steps {
+						container('gradle') {
+							script {
+								withMaven(maven: 'MAVEN-3.6.3') {
+									FAILED_STAGE=env.STAGE_NAME
+									echo 'I am running Performance Test here'
+								}
+							}
+						}
+					}
+				}
+			}  
+		}
+	}
+	post {
+		always {
+			script {
+				if (propfile['javadoc'] == "true") {
+					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
+				}
+			}
+		}
+	}
+}
