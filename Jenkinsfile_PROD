@@ -82,15 +82,13 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
-							echo env.BRANCH_NAME
-							echo env.GIT_BRANCH
 						}
 					}
 				}
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev' ||  env.GIT_BRANCH == 'release'  }}
+			when { expression {env.GIT_BRANCH == 'dev' || env.GIT_BRANCH ==~ /origin\//  }}
 			steps {
 				container('gradle') {
 					script {
