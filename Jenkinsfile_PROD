@@ -192,8 +192,8 @@ spec:
 				}
 			}  
 		}
+		*/
 	}
-	*/
 	post {
 		always {
 			script {
