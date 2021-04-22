@@ -104,8 +104,8 @@ spec:
 				}
 			}
 		}
-		stage("Deploy") {
-			//when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_deploy'] == "true" }}
+		stage('Deploy') {
+			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
