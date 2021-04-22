@@ -29,6 +29,7 @@ spec:
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							echo 'I am executing build and unit test'
+							echo env.BRANCH_NAME
 							echo 'use the command below when we switch to EJB source'
 							//sh 'gradle --no-daemon clean build'
 							echo 'Add gradle clean and build for EJB and comment this step' 
