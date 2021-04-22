@@ -37,6 +37,7 @@ spec:
 							echo 'I am executing build and unit test'
 							
 							echo env.BRANCH_NAME
+							echo env.GIT_BRANCH
 							
                                                         //sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties_PROD')	
