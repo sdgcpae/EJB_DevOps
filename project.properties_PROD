@@ -1,6 +1,6 @@
 publish_pkg=true
 auto_deploy=true
-auto_post_deploy_tests=false
+auto_post_deploy_tests=true
 
 //ci specific variables
 javadoc=false
@@ -8,7 +8,7 @@ jacoco=false
 code_quality=false
 
 //post deployment testing specific variables
-ondemand_functionaltest=false
+ondemand_functionaltest=true
 ondemand_securitytest=false
 ondemand_performancetest=false
 
