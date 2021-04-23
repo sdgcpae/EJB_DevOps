@@ -120,7 +120,7 @@ spec:
 							}
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/${ear_file}"
+								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/propfile['ear_file']"
 							sh "ls -la $WORKSPACE/artifacts"
 							HOSTS.tokenize(',').each { HOSTNAME ->
 								echo "${HOSTNAME}"
