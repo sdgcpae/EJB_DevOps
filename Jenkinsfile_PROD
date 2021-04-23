@@ -23,10 +23,10 @@ spec:
 """
         }
     }
-    environment {
-    	//SSH TOKENS
+	environment {
+		//SSH TOKENS
 		token = credentials('id_rsa_jenkins')
-    }
+	}
 	stages {
 		stage('Build & Unit Test') {
 			steps {
@@ -35,7 +35,7 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
-							//sh 'gradle clean build'
+							sh 'gradle clean build'
 							propfile = readProperties(file: './project.properties_PROD')	
 							if (propfile['javadoc'] == "true") {
 								sh 'mvn javadoc:aggregate'
@@ -82,19 +82,32 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
-							echo env.GIT_BRANCH
+							sh '''
+								rm -rf $WORKSPACE/artifacts
+								mkdir -p $WORKSPACE/artifacts
+								cd $WORKSPACE
+								cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
+								cp -r deployment/* artifacts/
+								ls -lrt $WORKSPACE/artifacts
+							'''
+							sh "mvn -X deploy:deploy-file \
+								-Dfile=$WORKSPACE/artifacts/EJBIntegrationEAR.ear \
+								-DrepositoryId=snapshots \
+								-Durl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots/ \
+								-DgroupId=io.buildpacks.example \
+								-DartifactId=sample \
+								-Dversion=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}"
 						}
 					}
 				}
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev' || env.GIT_BRANCH ==~ /release\//  }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
 			steps {
 				container('gradle') {
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
-							FAILED_STAGE=env.STAGE_NAME
 							FAILED_STAGE=env.STAGE_NAME
 							if (env.GIT_BRANCH == 'dev') {
 								USERNAME=propfile['USERNAME_DEPLOY']
@@ -105,16 +118,33 @@ spec:
 								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
 								TARGETENV=propfile['target_auto_env']
 							}
-							echo "${USERNAME}"
-							echo "${HOSTS}"
-							echo "${TARGETENV}"
+							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
+								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/${ear_file}"
+							sh "ls -la $WORKSPACE/artifacts"
+							HOSTS.tokenize(',').each { HOSTNAME ->
+								echo "${HOSTNAME}"
+								sh '''
+									scp -i ${token} -o StrictHostKeyChecking=no -rp $WORKSPACE/artifacts/propfile['ear_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token}	-rp $WORKSPACE/artifacts/${TARGETENV}/propfile['migration_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['properties_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+									scp -i ${token} -rp $WORKSPACE/artifacts/${TARGETENV}/propfile['log4j_file'] ${USERNAME}@${HOSTNAME}:propfile['deploy_dir']/
+
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['ear_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['migration_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['properties_file']
+									ssh -i ${token} /bin/chmod 666 propfile['deploy_dir']/propfile['log4j_file']
+
+									ssh -i ${token} cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m propfile['migration_file'] -r `date "+%Y%m%d%H%M"`	
+								'''
+							}
 						}
 					}
 				}
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'dev' ||  propfile['auto_post_deploy_tests'] == "true" }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
 			parallel {
 				stage('Functional Test') {
 					when {expression {propfile['ondemand_functionaltest'] == "true" }}
