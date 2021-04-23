@@ -23,10 +23,10 @@ spec:
 """
         }
     }
-    environment {
-    	//SSH TOKENS
+	environment {
+		//SSH TOKENS
 		token = credentials('id_rsa_jenkins')
-    }
+	}
 	stages {
 		stage('Build & Unit Test') {
 			steps {
@@ -36,7 +36,7 @@ spec:
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'I am executing build and unit test'
 							sh 'gradle clean build'
-							propfile = readProperties(file: './project.properties')	
+							propfile = readProperties(file: './project.properties_PROD')	
 							if (propfile['javadoc'] == "true") {
 								sh 'mvn javadoc:aggregate'
 							}
@@ -118,11 +118,6 @@ spec:
 								HOSTS=propfile['HOSTS_AUTO_DEPLOY']
 								TARGETENV=propfile['target_auto_env']
 							}
-							echo "${USERNAME}"
-							echo "${HOSTNAME}"
-							echo "${TARGETENV}"
-							/*
-							echo "Pulling artifact from the repository to deploy"
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
 								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/${ear_file}"
@@ -143,8 +138,7 @@ spec:
 									ssh -i ${token} cd propfile['deploy_dir'];/usr/local/was/bin/wasMigrate.s -m propfile['migration_file'] -r `date "+%Y%m%d%H%M"`	
 								'''
 							}
-							*/
-						}	
+						}
 					}
 				}
 			}
