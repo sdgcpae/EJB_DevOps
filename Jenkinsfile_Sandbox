@@ -92,9 +92,10 @@ spec:
 								cd $WORKSPACE
 								cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
 								cp -r deployment/* artifacts/
+								tar -czvf artifact.tar.gz $WORKSPACE/artifacts/*
 								ls -lrt sample-java-app/target/
 							'''
-							sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
+							//sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
 						}
 					}
 				}
