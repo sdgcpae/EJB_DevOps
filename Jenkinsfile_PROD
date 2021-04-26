@@ -88,10 +88,13 @@ spec:
 								cd $WORKSPACE
 								cp -r dist/libs/EJBIntegrationEAR.ear artifacts/
 								cp -r deployment/* artifacts/
+								tar czvf artifact.tar artifacts
 								ls -lrt $WORKSPACE/artifacts
+								rm -rf $WORKSPACE/artifacts
 							'''
+							//sh "mvn clean deploy -DrepositoryId=snapshots -Durl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots/"
 							sh "mvn -X deploy:deploy-file \
-								-Dfile=$WORKSPACE/artifacts/EJBIntegrationEAR.ear \
+								-Dfile=$WORKSPACE/artifacts/artifact.tar \
 								-DrepositoryId=snapshots \
 								-Durl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots/ \
 								-DgroupId=io.buildpacks.example \
@@ -120,7 +123,8 @@ spec:
 							}
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:ear -Ddest=$WORKSPACE/artifacts/propfile['ear_file']"
+								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:.tar -Ddest=$WORKSPACE/artifacts/artifact.tar"
+							sh "tar zxvf $WORKSPACE/artifacts/artifact.tar -C $WORKSPACE"
 							sh "ls -la $WORKSPACE/artifacts"
 							HOSTS.tokenize(',').each { HOSTNAME ->
 								echo "${HOSTNAME}"
