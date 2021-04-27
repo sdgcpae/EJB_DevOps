@@ -86,6 +86,8 @@ spec:
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
+							
+							sh "echo propfile['ear_file']"
 							sh '''
 								rm -rf $WORKSPACE/artifacts
 								mkdir -p $WORKSPACE/artifacts
