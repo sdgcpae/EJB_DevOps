@@ -106,7 +106,7 @@ spec:
 			}
 		}
 		stage("Deploy") {
-			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_deploy'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_deploy'] == "true" &&  ((GIT_BRANCH).startsWith('release/') )) ||  (propfile['auto_deploy'] == "true" && ((GIT_BRANCH).startsWith('project/') )) }}
 			steps {
 				container('gradle') {
 					script {
@@ -123,7 +123,7 @@ spec:
 							}
 							sh "mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
 								-DrepoUrl=https://archiva.sgnt.devops.accentureanalytics.com/repository/snapshots \
-								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:.tar -Ddest=$WORKSPACE/artifacts/artifact.tar"
+								-Dartifact=io.buildpacks.example:sample:EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}:tar -Ddest=$WORKSPACE/artifacts/artifact.tar"
 							sh "tar zxvf $WORKSPACE/artifacts/artifact.tar -C $WORKSPACE"
 							sh "ls -la $WORKSPACE/artifacts"
 							HOSTS.tokenize(',').each { HOSTNAME ->
@@ -148,7 +148,7 @@ spec:
 			}
 		}
 		stage('Post Deploy Tests') {
-			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /release\//) ||  (propfile['auto_post_deploy_tests'] == "true" && env.GIT_BRANCH ==~ /project\//) }}
+			when { expression {env.GIT_BRANCH == 'dev' ||  (propfile['auto_post_deploy_tests'] == "true" && ((GIT_BRANCH).startsWith('release/') )) ||  (propfile['auto_post_deploy_tests'] == "true" && ((GIT_BRANCH).startsWith('project/') )) }}
 			parallel {
 				stage('Functional Test') {
 					when {expression {propfile['ondemand_functionaltest'] == "true" }}
