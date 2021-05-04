@@ -1,5 +1,7 @@
 def propfile
 def FAILED_STAGE
+def allJob = env.JOB_NAME.tokenize('/') as String[];
+def projectName = allJob[2];
 pipeline {
 	agent {
         kubernetes {
@@ -39,6 +41,8 @@ spec:
 							
 							echo env.BRANCH_NAME
 							echo env.GIT_BRANCH
+							
+							exit 1
 							
                                                         //sh "mvn -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -f sample-java-app/pom.xml clean package"
 							propfile = readProperties(file: './project.properties_PROD')	
@@ -196,12 +200,12 @@ spec:
 		}
 		success {
 			script {
-            			office365ConnectorSend message: "EJB CICD Pipeline ", status:"<SUCCESS>", webhookUrl:"$notification"
+            			office365ConnectorSend message: "EJB CICD Pipeline ", status:"SUCCESS", webhookUrl:"$notification"
 			}
 		}
 		failure {
 			script {
-				office365ConnectorSend message: "EJB CICD Pipeline", status:"<FAILURE>", webhookUrl:"$notification"
+				office365ConnectorSend message: "Something is wrong with the ${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline in the ${FAILED_STAGE} stage.", status:"FAILURE", webhookUrl:"$notification"
 			}
 		}
 	}
