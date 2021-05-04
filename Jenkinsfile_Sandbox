@@ -192,7 +192,16 @@ spec:
 					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
 				}
 				//echo "$notification"
-				office365ConnectorSend message: "<Your message>", status:"<Build status>", webhookUrl:"$notification"
+			}
+		}
+		success {
+			script {
+            			office365ConnectorSend message: "EJB CICD Pipeline ", status:"<SUCCESS>", webhookUrl:"$notification"
+			}
+		}
+		failure {
+			script {
+				office365ConnectorSend message: "EJB CICD Pipeline", status:"<FAILURE>", webhookUrl:"$notification"
 			}
 		}
 	}
