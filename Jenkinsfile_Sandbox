@@ -26,6 +26,7 @@ spec:
 		HOSTS_DEPLOY = 'rhscmdev02.sterling.com'
 		test = 'ls -lrt'
 		token = credentials('id_rsa_jenkins')
+		notification = credentials('EJB_CICD_webhook')
 	}
 	stages {
 		stage('Build & Unit Test') {
