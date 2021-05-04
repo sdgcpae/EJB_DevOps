@@ -191,7 +191,7 @@ spec:
 				if (propfile['javadoc'] == "true") {
 					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
 				}
-				echo $notification 
+				echo ${notification}
 				//office365ConnectorSend message: "<Your message>", status:"<Build status>", webhookUrl:'https://signetjewelers.webhook.office.com/webhookb2/7267f0f6-54db-4883-a692-ae2a83181c69@3aa3ff7f-2e43-4ebd-b484-42e80b2efcaa/JenkinsCI/15424b3bd17449ea91d3c6a5ac8a098d/cfe34240-6403-48cd-a382-0a8cf6c3a1f3'
 			}
 		}
