@@ -79,7 +79,7 @@ spec:
 			}
 		}
 		stage("Publish Package") {
-			//when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
+			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
@@ -104,6 +104,7 @@ spec:
 			}
 		}
 		stage("Deploy") {
+			when { expression {env.GIT_BRANCH == 'dev' || propfile['publish_pkg'] == "true" }}
 			steps {
 				container('gradle') {
 					script {
@@ -150,10 +151,6 @@ spec:
 							script {
 								FAILED_STAGE=env.STAGE_NAME
 								echo "I am running Functional Test here"
-								sh '''
-									ssh -i ${token} -o StrictHostKeyChecking=no wasadmin@10.250.52.52 $test
-									ssh -i ${token} wasadmin@10.250.52.52 pwd
-								'''
 							}
 						//}
 					}
@@ -193,6 +190,7 @@ spec:
 				if (propfile['javadoc'] == "true") {
 					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
 				}
+				office365ConnectorSend message: "<Your message>", status:"<Build status>", webhookUrl:'https://signetjewelers.webhook.office.com/webhookb2/7267f0f6-54db-4883-a692-ae2a83181c69@3aa3ff7f-2e43-4ebd-b484-42e80b2efcaa/JenkinsCI/15424b3bd17449ea91d3c6a5ac8a098d/cfe34240-6403-48cd-a382-0a8cf6c3a1f3'
 			}
 		}
 	}
