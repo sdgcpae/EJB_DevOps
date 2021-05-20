@@ -116,8 +116,8 @@ spec:
 					script {
 						withMaven(maven: 'MAVEN-3.6.3') {
 							FAILED_STAGE=env.STAGE_NAME
-							USERNAME=USERNAME_DEPLOY
-							HOSTS=HOSTS_DEPLOY
+							USERNAME=propfile['USERNAME_DEPLOY']
+							HOSTS=propfile['HOSTS_DEPLOY']
 
 							echo "${HOSTS}"
 							/*
