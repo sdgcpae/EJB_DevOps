@@ -206,15 +206,5 @@ spec:
 				echo "$TARGETENV"
 			}
 		}
-		success {
-			script {
-            			office365ConnectorSend message: "EJB CICD Pipeline ", status:"SUCCESS", webhookUrl:"$notification"
-			}
-		}
-		failure {
-			script {
-				office365ConnectorSend message: "Something is wrong with the ${projectName}-${env.GIT_BRANCH}-Branch-Build-${env.BUILD_NUMBER} Pipeline in the ${FAILED_STAGE} stage.", status:"FAILURE", webhookUrl:"$notification"
-			}
-		}
 	}
 }
