@@ -29,7 +29,7 @@ spec:
 		test = 'ls -lrt'
 		token = credentials('id_rsa_jenkins')
 		notification = credentials('Sandbox_webhook')
-		HOSTS
+		HOSTS=""
 	}
 	stages {
 		stage('Build & Unit Test') {
