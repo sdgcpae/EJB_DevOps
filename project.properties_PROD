@@ -1,4 +1,4 @@
-publish_pkg=false
+publish_pkg=true
 auto_deploy=false
 auto_post_deploy_tests=false
 
@@ -22,7 +22,7 @@ USERNAME_AUTO_DEPLOY=
 ////dev environment details 
 ////seperate host ip addresses by comma e.g. 10.1.2.3,10.4.5.6
 target_env=dev02
-HOSTS_DEPLOY=rhscmdev02.sterling.com
+HOSTS_DEPLOY=10.6.74.242
 USERNAME_DEPLOY=wasadmin
 
 //deployment specific variables
