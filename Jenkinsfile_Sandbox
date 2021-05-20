@@ -29,6 +29,7 @@ spec:
 		test = 'ls -lrt'
 		token = credentials('id_rsa_jenkins')
 		notification = credentials('Sandbox_webhook')
+		HOSTS
 	}
 	stages {
 		stage('Build & Unit Test') {
@@ -190,10 +191,17 @@ spec:
 	post {
 		always {
 			script {
-				if (propfile['javadoc'] == "true") {
-					javadoc(javadocDir: "/$WORKSPACE/target/site/apidocs", keepAll: true)
-				}
-				//echo "$notification"
+			
+				switch($HOSTS) { 
+					case "10.6.74.242": 
+						TARGETENV="dev1" 
+						break 
+
+					default:
+						TARGETENV="DEFAULT" 
+						break
+				} 
+				echo "$TARGETENV"
 			}
 		}
 		success {
