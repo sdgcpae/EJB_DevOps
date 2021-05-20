@@ -91,6 +91,7 @@ spec:
 							FAILED_STAGE=env.STAGE_NAME
 							echo 'copying the ear file from the individual target directories and copying it to artifacts directory'
 							
+							/*
 							sh "echo propfile['ear_file']"
 							sh '''
 								rm -rf $WORKSPACE/artifacts
@@ -101,6 +102,7 @@ spec:
 								tar -czvf artifact.tar.gz $WORKSPACE/artifacts/*
 								ls -lrt sample-java-app/target/
 							'''
+							*/
 							//sh "mvn clean deploy -Drevision=EJB-${env.GIT_BRANCH}-build-${env.BUILD_NUMBER}-SNAPSHOT -Dmaven.test.skip=true"
 						}
 					}
@@ -192,7 +194,7 @@ spec:
 		always {
 			script {
 			
-				switch($HOSTS) { 
+				switch(${HOSTS}) { 
 					case "10.6.74.242": 
 						TARGETENV="dev1" 
 						break 
